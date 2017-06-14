@@ -5,6 +5,8 @@ Created on Tue Jun 13 00:21:06 2017
 
 @author: shaojy11
 """
+
+
 from pylab import*
 from scipy.io import wavfile
 import tensorflow as tf
@@ -13,13 +15,13 @@ from stat import *
 import numpy as np
 
 def GenerateSpectrum(filename, unitTimeDuration):
-    # input: video filename, video clip length
-    # power = 10 * log(|fft(X)|^2)
-    # output feature vector (#video clips, #frequency bin)
-        # for a unitTimeDuration video clip: 
+    # input: audio filename, audio clip length
+    # power = log(|fft(X)|^2)
+    # output feature vector (#audio clips, #frequency bin)
+        # for a unitTimeDuration audio clip: 
             # output vector shape 1 * nUniquePts, decided by sampling theory
         
-    ssampFreq, snd = wavfile.read(filename)
+    sampFreq, snd = wavfile.read(filename)
     timeDuration = snd.shape[0] / sampFreq
     unitLength = int(unitTimeDuration * sampFreq) #clip length (in array)
 
@@ -50,6 +52,9 @@ def GenerateSpectrum(filename, unitTimeDuration):
 
 
 def GenSpecturmInBatch(pathname, unitTimeDuration, MAX_COUNT):
+    # input: root directory containing audio files, audio clip unit length, 
+    # MAX number of files processed in the current folder
+    # output: list of feature matrices
     data = []
     count = 1
     for f in os.listdir(pathname):
@@ -69,10 +74,14 @@ def GenSpecturmInBatch(pathname, unitTimeDuration, MAX_COUNT):
         
 if __name__ == '__main__':
     unitTimeDuration = 0.1 # clip length (second)
-    pathname = '../data/cmu_us_awb_arctic/wav/'
+    pathname = '../data/cmu_us_awb_arctic_male/wav/'
     
     data = GenSpecturmInBatch(pathname, unitTimeDuration, 50)
     
 #    plot(freqSpectrum, featureMat[4])
 #    xlabel('Frequency (kHz)')
 #    ylabel('Power (dB)')
+    maxL = 0
+    for i in range(len(data)):
+        maxL = max(maxL, data[i].shape[0])
+    
