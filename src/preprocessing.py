@@ -24,7 +24,6 @@ def GenerateSpectrum(filename, unitTimeDuration):
     sampFreq, snd = wavfile.read(filename)
     timeDuration = snd.shape[0] / sampFreq
     unitLength = int(unitTimeDuration * sampFreq) #clip length (in array)
-
     snd = snd / (2.**15)    
     nUniquePts = int(ceil((unitLength+1)/2.0))  # theory of sampling 采样定理
     featureMat = np.zeros((len(snd) / unitLength, nUniquePts))
@@ -57,6 +56,12 @@ def GenSpecturmInBatch(pathname, unitTimeDuration, MAX_COUNT):
     # output: list of feature matrices
     data = []
     count = 1
+    maxLen = 0
+    if (pathname.rsplit('/')[2].endswith('female')):
+        label = 0
+    else:
+        label = 1
+        
     for f in os.listdir(pathname):
         if count > MAX_COUNT:
             break
@@ -64,11 +69,12 @@ def GenSpecturmInBatch(pathname, unitTimeDuration, MAX_COUNT):
         mode = os.stat(filename)[ST_MODE]
         if S_ISREG(mode) and f.endswith(".wav"):
             feature = GenerateSpectrum(filename, unitTimeDuration)
-            data.append(feature[1])
+            maxLen = max(maxLen, feature[1].shape[0])
+            data.append((feature[1], label))
             count = count + 1
         else:
             print f + ": skipping"
-    return data
+    return data, maxLen
         
         
         
@@ -76,12 +82,10 @@ if __name__ == '__main__':
     unitTimeDuration = 0.1 # clip length (second)
     pathname = '../data/cmu_us_awb_arctic_male/wav/'
     
-    data = GenSpecturmInBatch(pathname, unitTimeDuration, 50)
+    data , maxLen = GenSpecturmInBatch(pathname, unitTimeDuration, 50)
     
 #    plot(freqSpectrum, featureMat[4])
 #    xlabel('Frequency (kHz)')
 #    ylabel('Power (dB)')
-    maxL = 0
-    for i in range(len(data)):
-        maxL = max(maxL, data[i].shape[0])
+
     

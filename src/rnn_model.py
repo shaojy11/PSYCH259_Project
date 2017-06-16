@@ -17,7 +17,7 @@ class SpeechGender(object):
         self.seqlen = tf.placeholder(tf.int32, [None])
         self.build_graph()
         if self.mode == 'train':
-            self.label = tf.placeholder(tf.float32, [None, 1])
+            self.label = tf.placeholder(tf.float32, [None])
             self.train_op()
 
     def build_graph(self):
@@ -33,7 +33,8 @@ class SpeechGender(object):
 
         w = tf.get_variable("w", [self.rnn_size, 1])
         b = tf.get_variable("b", [1])
-        self.logit = tf.matmul(outputs, w) + b
+        logit = tf.matmul(outputs, w) + b
+        self.logit = tf.reshape(logit, [-1])
 
     def train_op(self):
         # define loss

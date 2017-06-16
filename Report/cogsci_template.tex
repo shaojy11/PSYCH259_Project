@@ -23,16 +23,13 @@
 \usepackage{cogsci}
 \usepackage{pslatex}
 \usepackage{apacite}
+\usepackage{amsmath} 
 
-
-\title{How to Make a Proceedings Paper Submission}
+\title{Gender Recognition by Voice and Speech Analysis}
  
-\author{{\large \bf Morton Ann Gernsbacher (MAG@Macc.Wisc.Edu)} \\
-  Department of Psychology, 1202 W. Johnson Street \\
-  Madison, WI 53706 USA
-  \AND {\large \bf Sharon J.~Derry (SDJ@Macc.Wisc.Edu)} \\
-  Department of Educational Psychology, 1025 W. Johnson Street \\
-  Madison, WI 53706 USA}
+\author{{\large \bf Jingyu Shao(shaojy15@ucla.edu)} \\
+  Department of Statistics,  405 Hilgard Avenue\\
+  Los Angeles, CA 90024 USA}
 
 
 \begin{document}
@@ -41,68 +38,68 @@
 
 
 \begin{abstract}
-The abstract should be one paragraph, indented 1/8~inch on both sides,
-in 9~point font with single spacing. The heading ``{\bf Abstract}''
-should be 10~point, bold, centered, with one line of space below
-it. This one-paragraph abstract section is required only for standard
-six page proceedings papers. Following the abstract should be a blank
-line, followed by the header ``{\bf Keywords:}'' and a list of
-descriptive keywords separated by semicolons, all in 9~point font, as
-shown below.
+The physical cues underlying the perception of speech can be used for various purposes. This paper aims at identifying a voice as male or female, based upon acoustic properties of the voice and speech. We designed several feature engineering approaches to first create corresponding prototypes for each category. Then we fed them into several classical supervised learning classification models, together with self-designed recurrent neural networks, to train a powerful classifier for gender recognition, and also conducted large-scale experiments to compare performances between different compulational models and humans.
 
 \textbf{Keywords:} 
-add your choice of indexing terms or keywords; kindly use a
-semicolon; between each term
+speech perception; gender recognition; supervised learning; recurrent nueral network
 \end{abstract}
 
+\section{Introduction}
+Discrepancies between male and female voices are related to implicit and multidisciplinary issues, including not only acoustic measurements (mean frequency or magnitude), but also sociology or psychology (behavioral differences across genders). Our work focuses on the acoustic difference because it is more straight-forward and already sufficient for ordinary gender recognition problems.
 
-\section{General Formatting Instructions}
+Mean fundamental frequency is commonly considered to be the main discrepancy between male and female voice. The voiced speech of a typical adult male will have a fundamental frequency from 85 to 180 Hz, and that of a typical adult female from 165 to 255 Hz. But this may slightly vary through different ages, and even has relations with personal lifestyle. For example, those with a smoking habit have broadly lower voice frequency. 
 
-The entire contribution of a proceedings paper (including figures,
-references, and anything else) can be no longer than six pages.
+Also, the acoustic discrepancy across genders varies when it comes to different languages. For instance, a study in 2005 by Johnson () reveals that the across-gender variations in acounstic properties are relatively small in Danish but seem to be much more obvious in Russion. The difference even varies when it comes to different dialects. In a Chinses dialect, mean F0 is almost equivalent for male and female speakers[Rose, 1991, 2]; statistical analysis also reveals that Min speakers had a significantly greater maximum range of speaking intensity and a smaller lowest speaking intensity than Mandarin speakers[3].
 
-The text of the paper should be formatted in two columns with an
-overall width of 7 inches (17.8 cm) and length of 9.25 inches (23.5
-cm), with 0.25 inches between the columns. Leave two line spaces
-between the last author listed and the text of the paper. The left
-margin should be 0.75 inches and the top margin should be 1 inch.
-\textbf{The right and bottom margins will depend on whether you use
-  U.S. letter or A4 paper, so you must be sure to measure the width of
-  the printed text.} Use 10~point Times Roman with 12~point vertical
-spacing, unless otherwise specified.
+In our study, we focus on selecting the most appropriate computational model for voice gender discrimination in chanllenging cirmstances. We also aims at finding suitable feature engineering approaches for feeding the statistical models.
 
-The title should be in 14~point, bold, and centered. The title should
-be formatted with initial caps (the first letter of content words
-capitalized and the rest lower case). Each author's name should appear
-on a separate line, 11~point bold, and centered, with the author's
-email address in parentheses. Under each author's name list the
-author's affiliation and postal address in ordinary 10~point type.
+\section{Related Work}
 
-Indent the first line of each paragraph by 1/8~inch (except for the
-first paragraph of a new section). Do not add extra vertical space
-between paragraphs.
+\section{Feature Engineering}
+As a typical binary-classification problem, we need to first create statistical features from inexpressible data formats such as videos and audios with relative domain knowledge. We proposed 2 main approaches for audio data preprocessing.
+\subsection{Dataset Preparation}
+To distinguish genders from voices, we need raw data of speech recordings. Our dataset consists of 2 parts.
+\begin{itemize}
+\item We downloaded CMU\_ARCTIC speech synthesis databases from Language Technologies Institute at Carnegie Mellon University. We selected 4533 utterances speaking out-of-copyright texts from Project Gutenberg[]. Half of them are pronounced by US males, and another half are pronounced by US females. We also downloaded a dataset of 1133 English utterances spoken by a Scottish male, for the purpose of researching into dialect influences. We only selected distributions of 16KHz waveform.
+\item To create more chanllenging experiment cirmstances, we also collected a small dataset of 30 Chinses utterances with lower signal-to-noise ratio (SNR) from 4 classmates, two of which are males. The average length of these recordings are around 4 seconds.  We tested our classifiers on this more challenging dataset, and compared with human performaces.
+\end{itemize}
 
+\subsection{Acoustic Measurements}
+There are some important acoustic cues of human voices and speeches, with an analyzed frequency range of 0hz-280hz (human vocal range). Intuitively, we care about the mean frequency and standard deviation of frequency. The minimum and maximum fundamental frequencies might also count. Here we proposed a list of 20 acoustic properties as basic classfication features, which can be acquired in R using the seewave and tuneR packages. Table \ref{} illustrates the 20 acoustic measurements.
 
-\section{First Level Headings}
+\subsection{Frequency Spectrogram}
+Since frequency is the critical indication of human voice properties, we also consider encoding frequency information into spectrums to better reveal across-gender differences. A simple 1-D singal from raw audios is illustrated in Figure \ref{}. The typical sampling rates for human speeches are 8KHz and 16KHz, as according to Nyquist–Shannon sampling theorem\cite{}:
 
-First level headings should be in 12~point, initial caps, bold and
-centered. Leave one line space above the heading and 1/4~line space
-below the heading.
+\textit{If a function x(t) contains no frequencies higher than B hz, a sufficient sample-rate is 2B samples/second, or anything larger.}
 
+Human vocal range is from 0 to 280hz, and thus a sampling rate of 16KHz is gauranteed to capture all the information from a continuous-time audio signal of finite bandwidth.
+We use simple spectrogram to preprocess the raw data. We split the audio into small windows of unit length (100ms), compute Fast Fourier Transforamtion (FFT)  on the small audio clip and take magnitude. In this way, we can fully capture  frequency contents in local window, as illustrated in Figure \ref{}. Finally frames are concatenated from adjacent windows to form "spectrogram" for each raw audio. Each pair of \{spectrogream, label\} is considered a training data point for our supervised learning model.
 
-\subsection{Second Level Headings}
+However, a critical problem occurs when we consider about the dimension of created features: 
+\begin{align*}
+dim(feature) =& (\#audioClips, \#frequencyBins) \\
+= &(\frac{len(audio)}{len(audioClip)}, \frac{max(frequency)}{2})
+\end{align*}
+When the unit length of each audio clip and the maximum of frequency spectrum are fixed, the first dimension of feature matrices varies with respect to the length of input audio data. This would cause a problem for most supervised learning models.
 
-Second level headings should be 11~point, initial caps, bold, and
-flush left. Leave one line space above the heading and 1/4~line
-space below the heading.
+\subsection{Dimension Reduction}
 
+\section{Computational Models}
+Classification is a typical problem in machine learning, which aims at developing an algorithm (classifier) that maps input features to a specific category. A large number of algorithms for classification can be phrased in terms of a linear function that assigns a score to each possible category \textit{k} by combining the feature vectors of an instance with a vector of weights, such as logistic regression or SVM. We can concert them into non-linear classifiers by applying non-linear kernels. There are also methods that model conditional density functions for discrimination, such as naive Bayes classifier, which belong to the generative model category.
 
-\subsubsection{Third Level Headings}
+\subsection{Classic Supervised Learning Models}
+\subsubsection{SVM and Logistic}
 
-Third level headings should be 10~point, initial caps, bold, and flush
-left. Leave one line space above the heading, but no space after the
-heading.
+\subsubsection{Naive Bayesian}
+We use Bayesian inference to learn parametric models from our training data. Because Bayes classifiers are highly scalable and requiring a number of parameters, we need to train with large number of predictors in the learning process.
+The basic idea is to learn a parametric likelihood probability model from existing data. Since the overall proportion of male and female is close to 1:1, the prior probabilty is assumed to be $P(male) = 0.5$ and $P(female) = 0.5$. We have two basic assumptions for naive Bayes classifier: 1) independence of the predictor variables, and 2) Gaussian distribution (given the target class) of metric predictors. 
+\subsection{Recurrent Nueral Network}
 
+\section{Experiments}
+
+\section{Conclusion}
+
+\section{Discussion}
 
 \section{Formalities, Footnotes, and Floats}
 
